@@ -3,6 +3,11 @@ fun day11a(): Int {
     return (1..100).fold(0) { acc, _ -> acc + step(data) }
 }
 
+fun day11b(): Int {
+    val data = readInput("day11.txt").lines().map { it.map { it.code - '0'.code }.toIntArray() }
+    return generateSequence { step(data) }.indexOfFirst { it == data.size * data[0].size } + 1
+}
+
 val flash = -1
 val max = 9
 val neighbours = listOf(-1 to -1, 0 to -1, 1 to -1, -1 to 0, 1 to 0, -1 to 1, 0 to 1, 1 to 1)
@@ -36,5 +41,5 @@ fun inc(data: List<IntArray>, x: Int, y: Int): Unit =
     }
 
 fun main() {
-    println(day11a())
+    println(day11b())
 }
