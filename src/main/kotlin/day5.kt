@@ -30,8 +30,7 @@ fun markSegment(field: ShortArray, size: Int, segment: Segment) {
 }
 
 fun inc(field: ShortArray, size: Int, x: Int, y: Int) {
-    val index = y * size + x
-    field[index] = (field[index] + 1).toShort()
+    field[y * size + x]++
 }
 
 fun main() {

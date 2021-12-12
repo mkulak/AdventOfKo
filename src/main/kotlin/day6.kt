@@ -2,7 +2,7 @@ fun day6b(): Long {
     val data = readInput("day6.txt").trim().split(",").map { it.toInt() }
     val fish = LongArray(9)
     data.forEach {
-        fish[it] = fish[it] + 1
+        fish[it]++
     }
     repeat(256) {
         tick(fish)
