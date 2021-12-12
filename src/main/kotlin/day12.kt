@@ -6,18 +6,10 @@ fun day12a(): Int {
         graph.getOrPut(end) { HashSet() } += start
     }
 
-    fun find(vertx: String, smallVisited: Set<String>): Int {
-        if (vertx == "end") {
-            return 1
-        }
-        var paths = 0
-        val newVisited = if (vertx.isBig) smallVisited else smallVisited + vertx
-        for (next in graph[vertx].orEmpty()) {
-            if (next.isBig || next !in smallVisited) {
-                paths += find(next, newVisited)
-            }
-        }
-        return paths
+    fun find(vertx: String, forbidden: Set<String>): Int {
+        if (vertx == "end") return 1
+        val nextForbidden = if (vertx.isBig) forbidden else forbidden + vertx
+        return graph[vertx].orEmpty().filter { it.isBig || it !in forbidden }.sumOf { find(it, nextForbidden) }
     }
 
     return find("start", emptySet())
