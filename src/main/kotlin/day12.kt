@@ -24,11 +24,11 @@ fun day12b(): Int {
     }
 
     fun find(vertx: String, forbidden: Set<String>, hasCheated: Boolean): Int {
-        if (vertx == "end") return 1
         val nextForbidden = if (vertx.isBig) forbidden else forbidden + vertx
         return graph[vertx].orEmpty().sumOf {
             when {
                 it == "start" -> 0
+                it == "end" -> 1
                 it.isBig || it !in forbidden -> find(it, nextForbidden, hasCheated)
                 !hasCheated -> find(it, nextForbidden, true)
                 else -> 0
