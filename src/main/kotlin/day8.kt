@@ -13,28 +13,20 @@ fun day8b(): Long {
     }
 }
 
-fun parse(s: String) = s.trim().split(" ").map { it.toCharArray().sorted().joinToString("") }
+fun parse(s: String) = s.trim().split(" ").map { it.toSet() }
 
-fun solve(input: List<String>): Array<String> {
-    val table = Array(10) { "" }
-    table[1] = input.single { it.length == 2 }
-    table[4] = input.single { it.length == 4 }
-    table[7] = input.single { it.length == 3 }
-    table[8] = input.single { it.length == 7 }
-
-    val fives = input.filter { it.length == 5 }
-    val cf = table[1]
-    val db = table[4].filter { it !in table[1] }
-    table[3] = fives.single { cf[0] in it && cf[1] in it }
-    table[5] = fives.single { db[0] in it && db[1] in it }
-    table[2] = fives.single { it != table[3] && it != table[5] }
-
-    val sixes = input.filter { it.length == 6 }
-    val ce = table[2].filter { it !in table[5] }
-    val c = ce.single { it in cf }
-    table[0] = sixes.single { ce[0] in it && ce[1] in it }
-    table[9] = sixes.single { c in it && it != table[0] }
-    table[6] = sixes.single { it != table[0] && it != table[9] }
+fun solve(input: List<Set<Char>>): Array<Set<Char>> {
+    val table = Array(10) { emptySet<Char>() }
+    table[1] = input.single { it.size == 2 }
+    table[4] = input.single { it.size == 4 }
+    table[7] = input.single { it.size == 3 }
+    table[8] = input.single { it.size == 7 }
+    table[3] = input.single { it.size == 5 && it.containsAll(table[1]) }
+    table[5] = input.single { it.size == 5 && it.containsAll(table[4] - table[1]) }
+    table[2] = input.single { it.size == 5 && it != table[3] && it != table[5] }
+    table[0] = input.single { it.size == 6 && it.containsAll(table[2] - table[5]) }
+    table[9] = input.single { it.size == 6 && (table[4] - it).isEmpty() }
+    table[6] = input.single { it.size == 6 && it != table[0] && it != table[9] }
     return table
 }
 
