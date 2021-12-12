@@ -5,27 +5,25 @@ fun day12a(): Int {
         graph.getOrPut(start) { HashSet() } += end
         graph.getOrPut(end) { HashSet() } += start
     }
-    data class State(val vertx: String, val smallVisited: Set<String>)
-    val states = ArrayDeque<State>()
-    states += State("start", emptySet())
-    var pathsFound = 0
-    while (states.isNotEmpty()) {
-        val cur = states.removeFirst()
-        if (cur.vertx == "end") {
-            pathsFound++
-            continue
+
+    fun find(vertx: String, smallVisited: Set<String>): Int {
+        if (vertx == "end") {
+            return 1
         }
-        for (next in graph[cur.vertx].orEmpty()) {
-            if (next.isBig || next !in cur.smallVisited) {
-                states += State(next, if (cur.vertx.isBig) cur.smallVisited else cur.smallVisited + cur.vertx)
+        var paths = 0
+        val newVisited = if (vertx.isBig) smallVisited else smallVisited + vertx
+        for (next in graph[vertx].orEmpty()) {
+            if (next.isBig || next !in smallVisited) {
+                paths += find(next, newVisited)
             }
         }
+        return paths
     }
-    return pathsFound
+
+    return find("start", emptySet())
 }
 
 val String.isBig get() = this[0].isUpperCase()
-
 
 fun main() {
     println(day12a())
