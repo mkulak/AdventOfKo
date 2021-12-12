@@ -1,3 +1,5 @@
+import kotlin.math.absoluteValue
+import kotlin.math.max
 import kotlin.math.sign
 
 data class Segment(val startX: Int, val startY: Int, val endX: Int, val endY: Int)
@@ -17,20 +19,14 @@ fun day5b(): Int {
 }
 
 fun markSegment(field: ShortArray, size: Int, segment: Segment) {
-    val stepX = (segment.endX - segment.startX).sign
-    val stepY = (segment.endY - segment.startY).sign
-    var curX = segment.startX
-    var curY = segment.startY
-    while (curX != segment.endX || curY != segment.endY) {
-        inc(field, size, curX, curY)
-        curX += stepX
-        curY += stepY
+    val diffX = segment.endX - segment.startX
+    val diffY = segment.endY - segment.startY
+    val length = max(diffX.absoluteValue, diffY.absoluteValue) + 1
+    repeat(length) {
+        val x = segment.startX + diffX.sign * it
+        val y = segment.startY + diffY.sign * it
+        field[y * size + x]++
     }
-    inc(field, size, curX, curY)
-}
-
-fun inc(field: ShortArray, size: Int, x: Int, y: Int) {
-    field[y * size + x]++
 }
 
 fun main() {
