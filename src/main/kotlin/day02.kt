@@ -1,6 +1,6 @@
 
 fun day2b(): Int {
-    val data = readInput("day2.txt").lines().map {
+    val data = readInput("day02.txt").lines().map {
         val (cmd, num) = it.split(" ")
         when (cmd) {
             "forward" -> true to num.toInt()

@@ -1,5 +1,5 @@
 fun day3a(): Int {
-    val data = readInput("day3.txt").lines()
+    val data = readInput("day03.txt").lines()
     val len = data[0].length
     var gamma = 0
     var epsilon = 0
@@ -14,7 +14,7 @@ fun day3a(): Int {
 }
 
 fun day3b(): Int {
-    val data = readInput("day3.txt").lines()
+    val data = readInput("day03.txt").lines()
     val oxygen = find(data, true).single().toInt(2)
     val scrubber = find(data, false).single().toInt(2)
     return oxygen * scrubber

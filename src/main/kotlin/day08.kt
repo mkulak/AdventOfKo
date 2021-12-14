@@ -1,5 +1,5 @@
 fun day8b(): Long {
-    val data = readInput("day8.txt").lines().map {
+    val data = readInput("day08.txt").lines().map {
         val (input, output) = it.trim().split(" | ")
         parse(input) to parse(output)
     }

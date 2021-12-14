@@ -1,10 +1,10 @@
 fun day1a(): Int {
-    val measurements = readInput("day1.txt").lines().map { it.toInt() }
+    val measurements = readInput("day01.txt").lines().map { it.toInt() }
     return findIncreaseCount(measurements)
 }
 
 fun day1b(): Int {
-    val data = readInput("day1.txt").lines().map { it.toInt() }
+    val data = readInput("day01.txt").lines().map { it.toInt() }
     val sliding = data.indices.drop(2).map { i -> data[i - 2] + data[i - 1] + data[i] }
     return findIncreaseCount(sliding)
 }

@@ -1,5 +1,5 @@
 fun day6b(): Long {
-    val data = readInput("day6.txt").trim().split(",").map { it.toInt() }
+    val data = readInput("day06.txt").trim().split(",").map { it.toInt() }
     val fish = LongArray(9)
     data.forEach {
         fish[it]++

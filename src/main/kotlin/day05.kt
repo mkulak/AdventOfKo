@@ -6,7 +6,7 @@ data class Segment(val startX: Int, val startY: Int, val endX: Int, val endY: In
 
 fun day5b(): Int {
     val regexp = "(\\d+),(\\d+) -> (\\d+),(\\d+)".toRegex()
-    val data = readInput("day5.txt").lines().map { line ->
+    val data = readInput("day05.txt").lines().map { line ->
         val (_, s1, s2, s3, s4) = regexp.find(line)!!.groupValues
         Segment(s1.toInt(), s2.toInt(), s3.toInt(), s4.toInt())
     }

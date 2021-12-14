@@ -1,7 +1,7 @@
 import java.util.PriorityQueue
 
 fun day9a(): Int {
-    val data = readInput("day9.txt").lines().map { line ->
+    val data = readInput("day09.txt").lines().map { line ->
         line.map { it.code - '0'.code }
     }
     var risk = 0
@@ -19,7 +19,7 @@ fun day9a(): Int {
 }
 
 fun day9b(): Int {
-    val data = readInput("day9.txt").lines().map { line ->
+    val data = readInput("day09.txt").lines().map { line ->
         IntArray(line.length) { line[it].code - '0'.code }
     }
 

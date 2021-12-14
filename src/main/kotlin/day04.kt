@@ -1,5 +1,5 @@
 fun day4a(): Int {
-    val data = readInput("day4.txt").lines()
+    val data = readInput("day04.txt").lines()
     val numbers = data[0].split(",").map { it.toInt() }
     val boards = data.drop(2).windowed(6, 6, true).map { lines ->
         lines.dropLast(lines.size - 5).flatMap { it.trim().split("\\s+".toRegex()).map { it.toInt() } }.toIntArray()
@@ -16,7 +16,7 @@ fun day4a(): Int {
 }
 
 fun day4b(): Int {
-    val data = readInput("day4.txt").lines()
+    val data = readInput("day04.txt").lines()
     val numbers = data[0].split(",").map { it.toInt() }
     var boards = data.drop(2).windowed(6, 6, true).map { lines ->
         lines.dropLast(lines.size - 5).flatMap { it.trim().split("\\s+".toRegex()).map { it.toInt() } }.toIntArray()
