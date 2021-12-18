@@ -18,7 +18,7 @@ fun day15a(): Int {
     val minCostFound = IntArray(data.size) { Int.MAX_VALUE }
     val comparator = compareBy<State> { (size - it.pos % size) + (size - it.pos / size) + it.cost }
     val queue = PriorityQueue(comparator)
-    queue += State(0, -data[0], BooleanArray(data.size) { it == 0 })
+    queue += State(0, -data[0])
 
     while (queue.isNotEmpty()) {
         val state = queue.poll()
@@ -31,18 +31,14 @@ fun day15a(): Int {
             println("new minPath: $newCost")
             continue
         }
-        val newVisited = state.visited.copyOf()
         neighbours(state.pos).forEach {
-            if (!state.visited[it]) {
-                newVisited[it] = true
-                queue += State(it, newCost, newVisited)
-            }
+            queue += State(it, newCost)
         }
     }
     return minCostFound.last()
 }
 
-data class State(val pos: Int, val cost: Int, val visited: BooleanArray)
+data class State(val pos: Int, val cost: Int)
 
 fun main() {
     println(day15a())
