@@ -6,10 +6,20 @@ fun day15a(): Int {
     val size = lines[0].length
     val target = data.size - 1
 
+    fun neighbours(pos: Int): List<Int> = buildList {
+        val x = pos % size
+        val y = pos / size
+        if (x > 0) add(pos - 1)
+        if (x < size - 1) add(pos + 1)
+        if (y > 0) add(pos - size)
+        if (y < size - 1) add(pos + size)
+    }
+
     val minCostFound = IntArray(data.size) { Int.MAX_VALUE }
-    val comparator = compareBy<State> { (size - it.pos % size) + (size - it.pos / size) }
+    val comparator = compareBy<State> { (size - it.pos % size) + (size - it.pos / size) + it.cost }
     val queue = PriorityQueue(comparator)
-    queue += State(0, -data[0], BooleanArray(data.size))
+    queue += State(0, -data[0], BooleanArray(data.size) { it == 0 })
+
     while (queue.isNotEmpty()) {
         val state = queue.poll()
         val newCost = state.cost + data[state.pos]
@@ -22,25 +32,17 @@ fun day15a(): Int {
             continue
         }
         val newVisited = state.visited.copyOf()
-        newVisited[state.pos] = true
-        val x = state.pos % size
-        val y = state.pos / size
-        if (x > 0) queue.addState(state.pos - 1, newCost, state, newVisited)
-        if (x < size - 1) queue.addState(state.pos + 1, newCost, state, newVisited)
-        if (y > 0) queue.addState(state.pos - size, newCost, state, newVisited)
-        if (y < size - 1) queue.addState(state.pos + size, newCost, state, newVisited)
+        neighbours(state.pos).forEach {
+            if (!state.visited[it]) {
+                newVisited[it] = true
+                queue += State(it, newCost, newVisited)
+            }
+        }
     }
     return minCostFound.last()
 }
 
 data class State(val pos: Int, val cost: Int, val visited: BooleanArray)
-
-fun PriorityQueue<State>.addState(pos: Int, newCost: Int, state: State, newVisited: BooleanArray) {
-    if (!state.visited[pos]) {
-        newVisited[pos] = true
-        this += State(pos, newCost, newVisited)
-    }
-}
 
 fun main() {
     println(day15a())
