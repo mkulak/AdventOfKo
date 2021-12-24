@@ -10,80 +10,84 @@ fun day16a(): UInt {
             bitSet.set(i * 4 + it, (value and (1 shl (3 - it)) != 0))
         }
     }
-//    data.forEachIndexed { i, ch ->
-//        val bits = table[ch]?.toString(2)
-//        val fromSet = (0..3).map { if (bitSet[i * 4 + it]) '1' else '0' }.joinToString("")
-//        println("$ch $bits $fromSet")
-//    }
     val packet = readPacket(BitReader(bitSet))
-    println(packet)
     return sumVersions(packet)
 }
 
-val literalTypeId: UByte = 4u
+fun day16b(): ULong {
+    val data = readInput("day16.txt")
+    val bitSet = BitSet(data.length * 4)
+    val table = (('0'..'9') + ('A'..'F')).mapIndexed { i, ch -> ch to i }.toMap()
+    data.forEachIndexed { i, ch ->
+        val value = table[ch]!!
+        repeat(4) {
+            bitSet.set(i * 4 + it, (value and (1 shl (3 - it)) != 0))
+        }
+    }
+    val packet = readPacket(BitReader(bitSet))
+    return evaluate(packet)
+}
 
-fun readPacket(bitReader: BitReader): Packet {
-    val version = bitReader.readInt(3u).toUByte()
-    val typeId = bitReader.readInt(3u).toUByte()
+val sumTypeId: UByte = 0u
+val mulTypeId: UByte = 1u
+val minTypeId: UByte = 2u
+val maxTypeId: UByte = 3u
+val literalTypeId: UByte = 4u
+val greaterTypeId: UByte = 5u
+val lessTypeId: UByte = 6u
+val equalTypeId: UByte = 7u
+
+data class Packet(val version: UByte, val type: UByte, val value: ULong, val operands: List<Packet>)
+
+fun readPacket(reader: BitReader): Packet {
+    val version = reader.readInt(3u).toUByte()
+    val typeId = reader.readInt(3u).toUByte()
     return if (typeId == literalTypeId) {
         var value = 0.toULong()
         do {
-            val next = bitReader.readBit()
-            val chunk = bitReader.readInt(4u)
+            val next = reader.readBit()
+            val chunk = reader.readInt(4u)
             value = (value shl 4) + chunk
         } while (next)
-        LiteralPacket(version, value).also { println(it) }
+        Packet(version, typeId, value, emptyList())
     } else {
-        val lengthTypeId = bitReader.readBit()
+        val lengthTypeId = reader.readBit()
         val subPackets = if (lengthTypeId) {
-            val packetsCount = bitReader.readInt(11u)
-            println("operator with packetsCount: $packetsCount")
-            List(packetsCount.toInt()) { readPacket(bitReader) }
+            val packetsCount = reader.readInt(11u)
+            List(packetsCount.toInt()) { readPacket(reader) }
         } else {
-            val packetsSize = bitReader.readInt(15u).toInt()
-            println("operator with packetsSize: $packetsSize")
-            val initialOffset = bitReader.offset
-            generateSequence {
-//                println("bitReader.offset: ${bitReader.offset}")
-                if (bitReader.offset < initialOffset + packetsSize) {
-                    readPacket(bitReader)
-                } else null
-            }.toList()
+            val packetsSize = reader.readInt(15u).toInt()
+            val initial = reader.offset
+            generateSequence { if (reader.offset < initial + packetsSize) readPacket(reader) else null }.toList()
         }
-        OperatorPacket(version, typeId, subPackets).also { println(it) }
+        Packet(version, typeId, 0.toULong(), subPackets)
     }
 }
-
-fun sumVersions(packet: Packet): UInt =
-    packet.version + when (packet) {
-        is LiteralPacket -> 0u
-        is OperatorPacket -> packet.operands.sumOf(::sumVersions)
-    }
 
 class BitReader(val bitSet: BitSet) {
     var offset = 0
 
     fun readBit(): Boolean = bitSet[offset++]
 
-    fun readInt(bitsCount: UInt): UInt {
-        var res = 0.toUInt()
-        (0u until bitsCount).forEach {
-            val b = if (bitSet[offset + it.toInt()]) 1 else 0
-            res = (res shl 1) + b.toUInt()
+    fun readInt(bitsCount: UInt): UInt =
+        (0u until bitsCount).fold(0u) { acc, _ -> (acc shl 1) + (if (readBit()) 1u else 0u) }
+}
+
+fun sumVersions(packet: Packet): UInt = packet.version + packet.operands.sumOf(::sumVersions)
+
+fun evaluate(packet: Packet): ULong =
+        when (packet.type) {
+            sumTypeId -> packet.operands.sumOf(::evaluate)
+            mulTypeId -> packet.operands.fold(1.toULong()) { acc, p -> acc * evaluate(p)}
+            minTypeId -> packet.operands.map(::evaluate).minOrNull()!!
+            maxTypeId -> packet.operands.map(::evaluate).maxOrNull()!!
+            literalTypeId -> packet.value
+            greaterTypeId -> if (evaluate(packet.operands[0]) > evaluate(packet.operands[1])) 1u else 0u
+            lessTypeId -> if (evaluate(packet.operands[0]) < evaluate(packet.operands[1])) 1u else 0u
+            equalTypeId -> if (evaluate(packet.operands[0]) == evaluate(packet.operands[1])) 1u else 0u
+            else -> unreachable()
         }
-        offset += bitsCount.toInt()
-        return res
-    }
-}
-
-sealed class Packet {
-    abstract val version: UByte
-}
-
-data class LiteralPacket(override val version: UByte, val value: ULong) : Packet()
-
-data class OperatorPacket(override val version: UByte, val operatorType: UByte, val operands: List<Packet>) : Packet()
 
 fun main() {
-    println(day16a())
+    println(day16b())
 }
