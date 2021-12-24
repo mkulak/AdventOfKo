@@ -55,8 +55,11 @@ fun BitReader.readPacket(): Packet {
     return Packet(version, typeId, value, operands)
 }
 
-tailrec fun BitReader.readValue(value: ULong = 0u): ULong =
-    if (readBit()) readValue(value + readUInt(4u)) else value + readUInt(4u)
+tailrec fun BitReader.readValue(value: ULong = 0u): ULong {
+    val next = readBit()
+    val newValue = (value shl 4) + readUInt(4u)
+    return if (next) readValue(newValue) else newValue
+}
 
 class BitReader(val bitSet: BitSet) {
     var offset = 0
