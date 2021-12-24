@@ -42,13 +42,14 @@ data class Packet(val version: UByte, val type: UByte, val value: ULong, val ope
 fun BitReader.readPacket(): Packet {
     val version = readUInt(3u).toUByte()
     val typeId = readUInt(3u).toUByte()
-    val (value, operands) = when {
-        typeId == literalTypeId -> readValue(0u) to emptyList()
-        readBit() -> 0.toULong() to List(readUInt(11u).toInt()) { readPacket() }
+    val value = if (typeId == literalTypeId) readValue(0u) else 0u
+    val operands = when {
+        typeId == literalTypeId -> emptyList()
+        readBit() -> List(readUInt(11u).toInt()) { readPacket() }
         else -> {
             val packetsSize = readUInt(15u).toInt()
             val initial = offset
-            0.toULong() to generateSequence { if (offset < initial + packetsSize) readPacket() else null }.toList()
+            generateSequence { if (offset < initial + packetsSize) readPacket() else null }.toList()
         }
     }
     return Packet(version, typeId, value, operands)
@@ -82,5 +83,5 @@ fun evaluate(packet: Packet): ULong =
     }
 
 fun main() {
-    println(day16b())
+    println(day16b()) //2056021084691
 }
