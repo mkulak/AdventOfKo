@@ -79,12 +79,14 @@ fun evaluate(packet: Packet): ULong =
         minTypeId -> packet.operands.map(::evaluate).minOrNull()!!
         maxTypeId -> packet.operands.map(::evaluate).maxOrNull()!!
         literalTypeId -> packet.value
-        greaterTypeId -> if (evaluate(packet.operands[0]) > evaluate(packet.operands[1])) 1u else 0u
-        lessTypeId -> if (evaluate(packet.operands[0]) < evaluate(packet.operands[1])) 1u else 0u
-        equalTypeId -> if (evaluate(packet.operands[0]) == evaluate(packet.operands[1])) 1u else 0u
+        greaterTypeId -> if (packet.compareOperands() > 0) 1u else 0u
+        lessTypeId -> if (packet.compareOperands() < 0) 1u else 0u
+        equalTypeId -> if (packet.compareOperands() == 0) 1u else 0u
         else -> unreachable()
     }
 
+fun Packet.compareOperands() = evaluate(operands[0]).compareTo(evaluate(operands[1]))
+
 fun main() {
-    println(day16b()) //2056021084691
+    println(day16b())
 }
