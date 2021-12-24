@@ -10,7 +10,7 @@ fun day16a(): UInt {
             bitSet.set(i * 4 + it, (value and (1 shl (3 - it)) != 0))
         }
     }
-    val packet = readPacket(BitReader(bitSet))
+    val packet = BitReader(bitSet).readPacket()
     return sumVersions(packet)
 }
 
@@ -24,7 +24,7 @@ fun day16b(): ULong {
             bitSet.set(i * 4 + it, (value and (1 shl (3 - it)) != 0))
         }
     }
-    val packet = readPacket(BitReader(bitSet))
+    val packet = BitReader(bitSet).readPacket()
     return evaluate(packet)
 }
 
@@ -39,37 +39,34 @@ val equalTypeId: UByte = 7u
 
 data class Packet(val version: UByte, val type: UByte, val value: ULong, val operands: List<Packet>)
 
-fun readPacket(reader: BitReader): Packet {
-    val version = reader.readInt(3u).toUByte()
-    val typeId = reader.readInt(3u).toUByte()
+fun BitReader.readPacket(): Packet {
+    val version = readUInt(3u).toUByte()
+    val typeId = readUInt(3u).toUByte()
     return if (typeId == literalTypeId) {
-        var value = 0.toULong()
-        do {
-            val next = reader.readBit()
-            val chunk = reader.readInt(4u)
-            value = (value shl 4) + chunk
-        } while (next)
-        Packet(version, typeId, value, emptyList())
+        Packet(version, typeId, readValue(0u), emptyList())
     } else {
-        val lengthTypeId = reader.readBit()
+        val lengthTypeId = readBit()
         val subPackets = if (lengthTypeId) {
-            val packetsCount = reader.readInt(11u)
-            List(packetsCount.toInt()) { readPacket(reader) }
+            val packetsCount = readUInt(11u).toInt()
+            List(packetsCount) { readPacket() }
         } else {
-            val packetsSize = reader.readInt(15u).toInt()
-            val initial = reader.offset
-            generateSequence { if (reader.offset < initial + packetsSize) readPacket(reader) else null }.toList()
+            val packetsSize = readUInt(15u).toInt()
+            val initial = offset
+            generateSequence { if (offset < initial + packetsSize) readPacket() else null }.toList()
         }
         Packet(version, typeId, 0.toULong(), subPackets)
     }
 }
+
+tailrec fun BitReader.readValue(value: ULong = 0u): ULong =
+    if (readBit()) readValue(value + readUInt(4u)) else value + readUInt(4u)
 
 class BitReader(val bitSet: BitSet) {
     var offset = 0
 
     fun readBit(): Boolean = bitSet[offset++]
 
-    fun readInt(bitsCount: UInt): UInt =
+    fun readUInt(bitsCount: UInt): UInt =
         (0u until bitsCount).fold(0u) { acc, _ -> (acc shl 1) + (if (readBit()) 1u else 0u) }
 }
 
