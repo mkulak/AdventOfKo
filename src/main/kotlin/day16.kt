@@ -42,20 +42,16 @@ data class Packet(val version: UByte, val type: UByte, val value: ULong, val ope
 fun BitReader.readPacket(): Packet {
     val version = readUInt(3u).toUByte()
     val typeId = readUInt(3u).toUByte()
-    return if (typeId == literalTypeId) {
-        Packet(version, typeId, readValue(0u), emptyList())
-    } else {
-        val lengthTypeId = readBit()
-        val subPackets = if (lengthTypeId) {
-            val packetsCount = readUInt(11u).toInt()
-            List(packetsCount) { readPacket() }
-        } else {
+    val (value, operands) = when {
+        typeId == literalTypeId -> readValue(0u) to emptyList()
+        readBit() -> 0.toULong() to List(readUInt(11u).toInt()) { readPacket() }
+        else -> {
             val packetsSize = readUInt(15u).toInt()
             val initial = offset
-            generateSequence { if (offset < initial + packetsSize) readPacket() else null }.toList()
+            0.toULong() to generateSequence { if (offset < initial + packetsSize) readPacket() else null }.toList()
         }
-        Packet(version, typeId, 0.toULong(), subPackets)
     }
+    return Packet(version, typeId, value, operands)
 }
 
 tailrec fun BitReader.readValue(value: ULong = 0u): ULong =
@@ -73,17 +69,17 @@ class BitReader(val bitSet: BitSet) {
 fun sumVersions(packet: Packet): UInt = packet.version + packet.operands.sumOf(::sumVersions)
 
 fun evaluate(packet: Packet): ULong =
-        when (packet.type) {
-            sumTypeId -> packet.operands.sumOf(::evaluate)
-            mulTypeId -> packet.operands.fold(1.toULong()) { acc, p -> acc * evaluate(p)}
-            minTypeId -> packet.operands.map(::evaluate).minOrNull()!!
-            maxTypeId -> packet.operands.map(::evaluate).maxOrNull()!!
-            literalTypeId -> packet.value
-            greaterTypeId -> if (evaluate(packet.operands[0]) > evaluate(packet.operands[1])) 1u else 0u
-            lessTypeId -> if (evaluate(packet.operands[0]) < evaluate(packet.operands[1])) 1u else 0u
-            equalTypeId -> if (evaluate(packet.operands[0]) == evaluate(packet.operands[1])) 1u else 0u
-            else -> unreachable()
-        }
+    when (packet.type) {
+        sumTypeId -> packet.operands.sumOf(::evaluate)
+        mulTypeId -> packet.operands.fold(1.toULong()) { acc, p -> acc * evaluate(p) }
+        minTypeId -> packet.operands.map(::evaluate).minOrNull()!!
+        maxTypeId -> packet.operands.map(::evaluate).maxOrNull()!!
+        literalTypeId -> packet.value
+        greaterTypeId -> if (evaluate(packet.operands[0]) > evaluate(packet.operands[1])) 1u else 0u
+        lessTypeId -> if (evaluate(packet.operands[0]) < evaluate(packet.operands[1])) 1u else 0u
+        equalTypeId -> if (evaluate(packet.operands[0]) == evaluate(packet.operands[1])) 1u else 0u
+        else -> unreachable()
+    }
 
 fun main() {
     println(day16b())
